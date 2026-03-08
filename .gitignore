@@ -1,0 +1,5 @@
+*.conf
+/target
+*.zip
+.vscode
+src/constants.rs
