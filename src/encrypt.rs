@@ -1,4 +1,3 @@
-
 use num_bigint::BigUint;
 
 pub fn encrypt_pass(password: String) -> String {
@@ -8,4 +7,3 @@ pub fn encrypt_pass(password: String) -> String {
     let result = c.modpow(&BigUint::from(e), &n);
     format!("{:0>256}", result.to_str_radix(16))
 }
-

@@ -20,20 +20,34 @@
 
 从 Release 下载对应硬件和操作系统平台的可执行文件。
 
-两种配置方式：
+支持两种配置方式：
 
 1) 内置配置（默认开启）：在 [src/constants.rs](src/constants.rs) 里把 `USE_EMBEDDED_CONFIG` 设为 `true`，并填写 `EMBEDDED_USERNAME` / `EMBEDDED_PASSWORD`。重新编译后程序会直接使用这些值，不再读取外部文件。
 
-2) 外部配置文件：将 `USE_EMBEDDED_CONFIG` 设为 `false`，运行时从文件读取。配置文件前两行仍是用户名和密码，后续可选写入键值覆盖默认参数，例如
+2) 外部配置文件：将 `USE_EMBEDDED_CONFIG` 设为 `false`，或者直接不提供 [src/constants.rs](src/constants.rs)。程序仍可正常编译，并在运行时自动读取配置文件。
+
+如果启动时没有传入参数，程序会按下面的顺序寻找配置文件：
+
+- 当前工作目录下的 `hust-network-login.conf`
+- 当前工作目录下的 `my.conf`
+- 当前工作目录下的 `config.txt`
+- 可执行文件所在目录下的 `hust-network-login.conf`
+- 可执行文件所在目录下的 `my.conf`
+- 可执行文件所在目录下的 `config.txt`
+
+如果启动时传入 1 个参数，则把该参数当作配置文件路径使用。
+
+配置文件前两行仍是用户名和密码，后续可选写入键值覆盖默认参数，例如
 
 ```text
 M2020123123
 mypasswordmypassword
-hust_url=http://www.hust.edu.cn
+hust_url=http://connectivitycheck.platform.hicloud.com/generate_204
 probe_timeout_secs=3
 login_timeout_secs=10
 retry_delay_secs=1
 ok_sleep_secs=15
+expect_204_response=true
 ```
 
 保存为 my.conf 后运行
@@ -42,7 +56,34 @@ ok_sleep_secs=15
 ./hust-network-login ./my.conf
 ```
 
+或者直接放在默认位置后运行
+
+```shell
+./hust-network-login
+```
+
 成功后程序默认每隔 15s 测试网络连通性，失败则重新登录，可通过上面的覆盖项调整间隔和超时。
+
+可用配置项：
+
+- `hust_url`：探测网络状态用的网址
+- `probe_timeout_secs`：探测请求超时秒数
+- `login_timeout_secs`：登录请求超时秒数
+- `retry_delay_secs`：失败后重试间隔秒数
+- `ok_sleep_secs`：成功后下一次探测前的等待秒数
+- `expect_204_response`：是否要求探测网址在“已联网”时直接返回 204
+
+关于 `expect_204_response`：
+
+- 设为 `true` 时，推荐使用 `generate_204` 这类探测地址
+- 如果探测网址返回的是普通网页、文本文件或其他非 204 内容，而又不是校园网认证页，程序会认为探测地址类型不匹配
+- 设为 `false` 时，程序会沿用旧逻辑，只要返回内容不是认证页，就视为已经联网
+
+推荐优先选择可直接返回 204 的 HTTP 探测地址，例如：
+
+- `http://connectivitycheck.platform.hicloud.com/generate_204`
+- `http://connect.rom.miui.com/generate_204`
+- `http://connectivitycheck.gstatic.com/generate_204`
 
 ## 编译
 
