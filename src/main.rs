@@ -17,11 +17,10 @@ const MAIN_DEFAULT_EXPECT_204_RESPONSE: bool = true;
 const MAIN_DEFAULT_CONFIG_PATHS: &[&str] = &["hust-network-login.conf", "my.conf", "config.txt"];
 
 fn extract<'a>(text: &'a str, prefix: &'a str, suffix: &'a str) -> io::Result<&'a str> {
-    let left = text.find(prefix);
-    let right = text.find(suffix);
-    if let (Some(l), Some(r)) = (left, right) {
-        if l + prefix.len() < r {
-            return Ok(&text[l + prefix.len()..r]);
+    if let Some(l) = text.find(prefix) {
+        let start = l + prefix.len();
+        if let Some(r) = text[start..].find(suffix) {
+            return Ok(&text[start..start + r]);
         }
     }
     Err(io::ErrorKind::InvalidData.into())
